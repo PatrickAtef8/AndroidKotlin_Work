@@ -33,7 +33,7 @@ class FragmentA : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = productAdapter
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO){
             try {
                 val products = if (NetworkUtils.isNetworkConnected(requireContext())) {
                     val response = RetrofitClient.apiService.getProducts()
