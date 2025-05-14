@@ -4,19 +4,23 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
-import com.google.gson.Gson
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ActivityA : AppCompatActivity() {
 
     private var products: List<Products> = emptyList()
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_a)
+
+        database = AppDatabase.getDatabase(this)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -28,47 +32,51 @@ class ActivityA : AppCompatActivity() {
             val fragmentBContainer = findViewById<View>(R.id.fragment_b_container)
             if (fragmentBContainer != null) {
                 fragmentBContainer.visibility = View.VISIBLE
-
-
-                val fragmentB = FragmentB()
                 supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_b_container, fragmentB, "FragmentB")
+                    .replace(R.id.fragment_b_container, FragmentB(), "FragmentB")
                     .commit()
-
-
-            } else {
             }
         }
-
-        val workRequest = OneTimeWorkRequestBuilder<ProductWorker>().build()
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(workRequest.id)
-            .observe(this) { workInfo ->
-                when (workInfo?.state) {
-                    WorkInfo.State.SUCCEEDED -> {
-                        val productsJson = workInfo.outputData.getString("products")
-                        val productsArray = Gson().fromJson(productsJson, Array<Products>::class.java)
-                        products = productsArray?.toList() ?: emptyList()
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    if (NetworkUtils.isNetworkConnected(this@ActivityA)) {
+                        val response = RetrofitClient.apiService.getProducts()
+                        if (response.isSuccessful) {
+                            products = response.body()?.products ?: emptyList()
+                            database.productDao().clearAll()
+                            database.productDao().insertAll(products)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@ActivityA, "Products loaded from network", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            products = database.productDao().getAllProducts()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@ActivityA, "Network error, loaded from room", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        products = database.productDao().getAllProducts()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@ActivityA, "Offline, loaded from room", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    else -> {}
+                } catch (e: Exception) {
+                    products = database.productDao().getAllProducts()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@ActivityA, "Error: ${e.message}, loaded from room", Toast.LENGTH_SHORT).show()
+                    }
                 }
-            }
-        WorkManager.getInstance(this).enqueue(workRequest)
-    }
-
-
+            }    }
 
     fun showProductDetails(productId: Int) {
         val product = products.find { it.id == productId }
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             val fragmentBContainer = findViewById<View>(R.id.fragment_b_container)
             if (fragmentBContainer != null && product != null) {
-
-
                 val bundle = Bundle()
                 bundle.putInt("product_id", product.id)
                 bundle.putString("product_title", product.title)
                 bundle.putString("product_description", product.description)
-
 
                 val fragmentB = FragmentB()
                 fragmentB.arguments = bundle
@@ -76,18 +84,17 @@ class ActivityA : AppCompatActivity() {
                     .replace(R.id.fragment_b_container, fragmentB, "FragmentB")
                     .addToBackStack(null)
                     .commit()
-
-
-
             } else {
-                val intent = Intent(this, ActivityB::class.java)
-                intent.putExtra("product_id", productId)
-                startActivity(intent)
+                startActivityB(productId)
             }
         } else {
-            val intent = Intent(this, ActivityB::class.java)
-            intent.putExtra("product_id", productId)
-            startActivity(intent)
+            startActivityB(productId)
         }
+    }
+
+    private fun startActivityB(productId: Int) {
+        val intent = Intent(this, ActivityB::class.java)
+        intent.putExtra("product_id", productId)
+        startActivity(intent)
     }
 }

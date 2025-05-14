@@ -1,7 +1,11 @@
 package com.example.jsonproductscoroutines
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "products")
 data class Products(
-    val id: Int,
+    @PrimaryKey val id: Int,
     val title: String,
     val description: String,
     val thumbnail: String
