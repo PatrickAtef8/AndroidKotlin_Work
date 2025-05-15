@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-
+import com.example.jsonproductsviewbinding.databinding.ActivityABinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,10 +16,12 @@ class ActivityA : AppCompatActivity() {
 
     private var products: List<Products> = emptyList()
     private lateinit var database: AppDatabase
+    private lateinit var binding: ActivityABinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_a)
+        binding = ActivityABinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         database = AppDatabase.getDatabase(this)
 
@@ -30,7 +32,7 @@ class ActivityA : AppCompatActivity() {
         }
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val fragmentBContainer = findViewById<View>(R.id.fragment_b_container)
+            val fragmentBContainer = binding.fragmentBContainer
             if (fragmentBContainer != null) {
                 fragmentBContainer.visibility = View.VISIBLE
                 supportFragmentManager.beginTransaction()
@@ -38,41 +40,42 @@ class ActivityA : AppCompatActivity() {
                     .commit()
             }
         }
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    if (NetworkUtils.isNetworkConnected(this@ActivityA)) {
-                        val response = RetrofitClient.apiService.getProducts()
-                        if (response.isSuccessful) {
-                            products = response.body()?.products ?: emptyList()
-                            database.productDao().clearAll()
-                            database.productDao().insertAll(products)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@ActivityA, "Products loaded from network", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            products = database.productDao().getAllProducts()
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@ActivityA, "Network error, loaded from room", Toast.LENGTH_SHORT).show()
-                            }
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                if (NetworkUtils.isNetworkConnected(this@ActivityA)) {
+                    val response = RetrofitClient.apiService.getProducts()
+                    if (response.isSuccessful) {
+                        products = response.body()?.products ?: emptyList()
+                        database.productDao().clearAll()
+                        database.productDao().insertAll(products)
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@ActivityA, "Products loaded from network", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         products = database.productDao().getAllProducts()
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@ActivityA, "Offline, loaded from room", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ActivityA, "Network error, loaded from room", Toast.LENGTH_SHORT).show()
                         }
                     }
-                } catch (e: Exception) {
+                } else {
                     products = database.productDao().getAllProducts()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@ActivityA, "Error: ${e.message}, loaded from room", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ActivityA, "Offline, loaded from room", Toast.LENGTH_SHORT).show()
                     }
                 }
-            }    }
+            } catch (e: Exception) {
+                products = database.productDao().getAllProducts()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ActivityA, "Error: ${e.message}, loaded from room", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     fun showProductDetails(productId: Int) {
         val product = products.find { it.id == productId }
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val fragmentBContainer = findViewById<View>(R.id.fragment_b_container)
+            val fragmentBContainer = binding.fragmentBContainer
             if (fragmentBContainer != null && product != null) {
                 val bundle = Bundle()
                 bundle.putInt("product_id", product.id)

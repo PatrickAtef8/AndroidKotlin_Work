@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-
+import com.example.jsonproductsviewbinding.databinding.ActivityBBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -12,10 +12,12 @@ import kotlinx.coroutines.withContext
 class ActivityB : AppCompatActivity() {
 
     private lateinit var database: AppDatabase
+    private lateinit var binding: ActivityBBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_b)
+        binding = ActivityBBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         database = AppDatabase.getDatabase(this)
         val productId = intent.getIntExtra("product_id", 1)
@@ -26,7 +28,8 @@ class ActivityB : AppCompatActivity() {
                     val response = RetrofitClient.apiService.getProducts()
                     if (response.isSuccessful) {
                         response.body()?.products?.find { it.id == productId }?.also {
-                            withContext(Dispatchers.Main) { Toast.makeText(this@ActivityB, "Product loaded from network", Toast.LENGTH_SHORT).show()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@ActivityB, "Product loaded from network", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } else {

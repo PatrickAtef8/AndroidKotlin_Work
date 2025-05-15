@@ -3,40 +3,38 @@ package com.example.jsonproductsviewbinding
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.jsonproductsviewbinding.databinding.ProductItemBinding
 
-class ProductAdapter(private val listener: (Products) -> Unit) :
+interface OnProductClickListener {
+    fun onProductClick(product: Products)
+}
+
+class ProductAdapter(private val listener: OnProductClickListener) :
     ListAdapter<Products, ProductAdapter.ProductViewHolder>(ProductDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.product_item, parent, false)
-        return ProductViewHolder(view)
+        val binding = ProductItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ProductViewHolder(binding)
     }
-
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = getItem(position)
         holder.bind(product)
         holder.itemView.setOnClickListener {
-            listener.invoke(product)
+            listener.onProductClick(product)
         }
     }
 
-    class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val iconView: ImageView = itemView.findViewById(R.id.product_icon)
-        private val nameView: TextView = itemView.findViewById(R.id.product_name)
-
+    class ProductViewHolder(private val binding: ProductItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(product: Products) {
-            nameView.text = product.title
+            binding.productName.text = product.title
             Glide.with(itemView.context)
                 .load(product.thumbnail)
                 .placeholder(android.R.drawable.ic_menu_gallery)
-                .into(iconView)
+                .into(binding.productIcon)
         }
     }
 }

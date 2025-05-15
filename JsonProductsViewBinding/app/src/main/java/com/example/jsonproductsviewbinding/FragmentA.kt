@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.jsonproductsviewbinding.databinding.FragmentABinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,24 +16,25 @@ import kotlinx.coroutines.withContext
 class FragmentA : Fragment() {
 
     private lateinit var productAdapter: ProductAdapter
-    private lateinit var recyclerView: RecyclerView
     private lateinit var database: AppDatabase
+    lateinit var binding: FragmentABinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_a, container, false)
-        recyclerView = view.findViewById(R.id.product_list)
+    ): View {
+        binding = FragmentABinding.inflate(inflater, container, false)
         database = AppDatabase.getDatabase(requireContext())
 
-        productAdapter = ProductAdapter { product ->
-            (activity as? ActivityA)?.showProductDetails(product.id)
-        }
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = productAdapter
+        productAdapter = ProductAdapter(object : OnProductClickListener {
+            override fun onProductClick(product: Products) {
+                (activity as? ActivityA)?.showProductDetails(product.id)
+            }
+        })
+        binding.productList.layoutManager = LinearLayoutManager(requireContext())
+        binding.productList.adapter = productAdapter
 
-        lifecycleScope.launch(Dispatchers.IO){
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val products = if (NetworkUtils.isNetworkConnected(requireContext())) {
                     val response = RetrofitClient.apiService.getProducts()
@@ -42,7 +43,9 @@ class FragmentA : Fragment() {
                             database.productDao().clearAll()
                             database.productDao().insertAll(it)
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), "Products loaded from api",Toast.LENGTH_SHORT).show() } } ?: emptyList()
+                                Toast.makeText(requireContext(), "Products loaded from api", Toast.LENGTH_SHORT).show()
+                            }
+                        } ?: emptyList()
                     } else {
                         database.productDao().getAllProducts().also {
                             withContext(Dispatchers.Main) {
@@ -68,8 +71,7 @@ class FragmentA : Fragment() {
                 }
             }
         }
-        return view
+        return binding.root
     }
-
 
 }
