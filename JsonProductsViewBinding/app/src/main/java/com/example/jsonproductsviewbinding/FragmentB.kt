@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import com.example.jsonproductsviewbinding.databinding.FragmentBBinding
 
 class FragmentB : Fragment() {
-    lateinit var binding: FragmentBBinding
+    private lateinit var binding: FragmentBBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
