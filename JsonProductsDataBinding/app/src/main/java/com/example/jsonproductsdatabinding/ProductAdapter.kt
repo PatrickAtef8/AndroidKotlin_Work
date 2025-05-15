@@ -19,10 +19,10 @@ class ProductAdapter(private val listener: OnProductClickListener) :
     ListAdapter<Products, ProductAdapter.ProductViewHolder>(ProductDiffCallback()) {
 
 
-    private lateinit var binding : ProductItemBinding
+//private lateinit var binding : ProductItemBinding
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-         binding = ProductItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+       val  binding = ProductItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ProductViewHolder(binding, listener)
     }
 
@@ -50,14 +50,5 @@ class ProductDiffCallback : DiffUtil.ItemCallback<Products>() {
     override fun areContentsTheSame(oldItem: Products, newItem: Products): Boolean {
         return oldItem == newItem
     }
-}
 
-object BindingAdapters {
-    @BindingAdapter("imageUrl")
-    fun loadImage(view: ImageView, url: String?) {
-        Glide.with(view.context)
-            .load(url)
-            .placeholder(android.R.drawable.ic_menu_gallery)
-            .into(view)
-    }
 }
