@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.jsonproductsviewbinding"
+    namespace = "com.example.jsonproductsdatabinding"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.jsonproductsviewbinding"
+        applicationId = "com.example.jsonproductsdatabinding"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -35,11 +35,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-
     buildFeatures {
-        viewBinding = true
+        dataBinding = true
     }
-
 }
 
 dependencies {
@@ -52,11 +50,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
     //room
     implementation ("androidx.room:room-ktx:2.6.1")
     implementation ("androidx.room:room-runtime:2.6.1")
     kapt ("androidx.room:room-compiler:2.6.1")
+
     //retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -64,4 +62,5 @@ dependencies {
     implementation ("androidx.work:work-runtime-ktx:2.9.0")
     //glide
     implementation ("com.github.bumptech.glide:glide:4.15.1")
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.8.22")
 }
