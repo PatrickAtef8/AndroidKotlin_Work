@@ -1,47 +1,36 @@
 package com.example.jsonproductsmvvm
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.example.jsonproductsmvvm.db.AppDatabase
-import com.example.jsonproductsmvvm.db.ProductsLocalDataSource
-import com.example.jsonproductsmvvm.db.ProductsLocalDataSourceImpl
-import com.example.jsonproductsmvvm.model.Product
-import com.example.jsonproductsmvvm.network.ProductService
-import com.example.jsonproductsmvvm.network.ProductsRemoteDataSource
-import com.example.jsonproductsmvvm.network.ProductsRemoteDataSourceImpl
-import com.example.jsonproductsmvvm.network.RetrofitHelper
-import kotlinx.coroutines.launch
+import com.example.jsonproductsmvvm.allproducts.view.AllProductsActivity
+import com.example.jsonproductsmvvm.favproducts.view.FavProductsActivity
+import com.example.jsonproductsmvvm.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var localDataSource: ProductsLocalDataSource
-    private lateinit var remoteDataSource: ProductsRemoteDataSource
+
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val db = AppDatabase.getInstance(this)
-        localDataSource = ProductsLocalDataSourceImpl(db.productDao())
-        val productService: ProductService = RetrofitHelper.productService
-        remoteDataSource = ProductsRemoteDataSourceImpl(productService)
+        // Show All Products button
+        binding.buttonShowAllProducts.setOnClickListener {
+            val intent = Intent(this, AllProductsActivity::class.java)
+            startActivity(intent)
+        }
 
-        lifecycleScope.launch {
-            try {
-                val response = remoteDataSource.fetchProducts()
-                if (response.isSuccessful) {
-                    val products = response.body()?.products ?: emptyList()
-                    products.forEach { product ->
-                        localDataSource.insertProduct(product)
-                    }
-                    val allProducts = localDataSource.getAllProducts()
-                    if (allProducts.isNotEmpty()) {
-                        localDataSource.deleteProduct(allProducts[0])
-                    }
-                }
-            } catch (e: Exception) {
-            }
+        // Show Favorites button
+        binding.buttonShowFavorites.setOnClickListener {
+            val intent = Intent(this, FavProductsActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Exit button
+        binding.buttonExit.setOnClickListener {
+            finishAffinity() // Closes the app completely
         }
     }
 }

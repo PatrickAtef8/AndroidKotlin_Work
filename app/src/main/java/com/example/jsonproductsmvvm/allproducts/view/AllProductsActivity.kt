@@ -2,6 +2,7 @@ package com.example.jsonproductsmvvm.allproducts.view
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,11 +37,16 @@ class AllProductsActivity : AppCompatActivity(), OnProductClickListener {
             adapter.updateProducts(products)
             Log.d("AllProductsActivity", "Updated UI with ${products.size} products")
         }
+
+        viewModel.message.observe(this) { message ->
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+
         viewModel.fetchProducts()
     }
 
     override fun onProductClick(product: Product) {
         viewModel.addToFavorites(product)
-        Log.d("AllProductsActivity", "Added ${product.title} to favorites")
+        Log.d("AllProductsActivity", "Attempted to add ${product.title} to favorites")
     }
 }

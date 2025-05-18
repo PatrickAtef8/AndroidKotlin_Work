@@ -12,6 +12,9 @@ class AllProductsViewModel(private val repository: ProductsRepository) : ViewMod
     private val _products = MutableLiveData<List<Product>>()
     val products: LiveData<List<Product>> = _products
 
+    private val _message = MutableLiveData<String>()
+    val message: LiveData<String> = _message
+
     fun fetchProducts() {
         viewModelScope.launch {
             val products = repository.getProducts(true)
@@ -21,7 +24,13 @@ class AllProductsViewModel(private val repository: ProductsRepository) : ViewMod
 
     fun addToFavorites(product: Product) {
         viewModelScope.launch {
-            repository.addFavorite(product)
+            val existingFavorites = repository.getFavorites()
+            if (existingFavorites.none { it.id == product.id }) {
+                repository.addFavorite(product)
+                _message.value = "${product.title} added to favorites"
+            } else {
+                _message.value = "${product.title} is already a favorite"
+            }
         }
     }
 }
