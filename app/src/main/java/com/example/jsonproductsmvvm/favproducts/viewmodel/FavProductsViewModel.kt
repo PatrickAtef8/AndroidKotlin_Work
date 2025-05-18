@@ -12,6 +12,9 @@ class FavProductsViewModel(private val repository: ProductsRepository) : ViewMod
     private val _favorites = MutableLiveData<List<Product>>()
     val favorites: LiveData<List<Product>> = _favorites
 
+    private val _message = MutableLiveData<String>()
+    val message: LiveData<String> = _message
+
     fun loadFavorites() {
         viewModelScope.launch {
             val favorites = repository.getFavorites()
@@ -21,9 +24,15 @@ class FavProductsViewModel(private val repository: ProductsRepository) : ViewMod
 
     fun deleteFavorite(product: Product) {
         viewModelScope.launch {
-            repository.removeFavorite(product)
-            val updatedFavorites = repository.getFavorites() // Refresh the list
-            _favorites.value = updatedFavorites
+            val existingFavorites = repository.getFavorites()
+            if (existingFavorites.any { it.id == product.id }) {
+                repository.removeFavorite(product)
+                val updatedFavorites = repository.getFavorites() // Refresh the list
+                _favorites.value = updatedFavorites
+                _message.value = "${product.title} removed from favorites"
+            } else {
+                _message.value = "${product.title} not found in favorites"
+            }
         }
     }
 }

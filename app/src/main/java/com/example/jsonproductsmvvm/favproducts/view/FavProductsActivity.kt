@@ -2,6 +2,7 @@ package com.example.jsonproductsmvvm.favproducts.view
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,11 +37,16 @@ class FavProductsActivity : AppCompatActivity(), OnFavoriteClickListener {
             adapter.updateFavorites(favorites)
             Log.d("FavProductsActivity", "Updated UI with ${favorites.size} favorite products")
         }
+
+        viewModel.message.observe(this) { message ->
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+
         viewModel.loadFavorites()
     }
 
     override fun onFavoriteClick(product: Product) {
         viewModel.deleteFavorite(product)
-        Log.d("FavProductsActivity", "Deleted ${product.title} from favorites")
+        Log.d("FavProductsActivity", "Attempted to delete ${product.title} from favorites")
     }
 }
