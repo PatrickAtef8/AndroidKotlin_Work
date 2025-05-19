@@ -6,8 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.jsonproductsmvvm.R
+import com.example.jsonproductsmvvm.databinding.ActivityAllProductsBinding
 import com.example.jsonproductsmvvm.allproducts.viewmodel.AllProductsViewModel
 import com.example.jsonproductsmvvm.allproducts.viewmodel.AllProductsViewModelFactory
 import com.example.jsonproductsmvvm.db.AppDatabase
@@ -20,16 +19,16 @@ import com.example.jsonproductsmvvm.network.RetrofitHelper
 class AllProductsActivity : AppCompatActivity(), OnProductClickListener {
 
     private lateinit var viewModel: AllProductsViewModel
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var binding: ActivityAllProductsBinding
     private val adapter = AllProductsAdapter(mutableListOf(), this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_all_products)
+        binding = ActivityAllProductsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        recyclerView = findViewById(R.id.recycler_view_products)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        binding.recyclerViewProducts.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewProducts.adapter = adapter
         val vmFactory = AllProductsViewModelFactory(ProductsRepositoryImpl.getInstance(ProductsRemoteDataSourceImpl(RetrofitHelper.productService), ProductsLocalDataSourceImpl(AppDatabase.getInstance(this).productDao())))
         viewModel = ViewModelProvider(this, vmFactory).get(AllProductsViewModel::class.java)
 

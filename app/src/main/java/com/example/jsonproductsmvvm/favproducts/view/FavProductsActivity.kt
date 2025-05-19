@@ -6,8 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.jsonproductsmvvm.R
+import com.example.jsonproductsmvvm.databinding.ActivityFavProductsBinding
 import com.example.jsonproductsmvvm.favproducts.viewmodel.FavProductsViewModel
 import com.example.jsonproductsmvvm.favproducts.viewmodel.FavProductsViewModelFactory
 import com.example.jsonproductsmvvm.db.AppDatabase
@@ -20,16 +19,16 @@ import com.example.jsonproductsmvvm.network.RetrofitHelper
 class FavProductsActivity : AppCompatActivity(), OnFavoriteClickListener {
 
     private lateinit var viewModel: FavProductsViewModel
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var binding: ActivityFavProductsBinding
     private val adapter = FavProductsAdapter(mutableListOf(), this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_fav_products)
+        binding = ActivityFavProductsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        recyclerView = findViewById(R.id.recycler_view_favorites)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        binding.recyclerViewFavorites.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewFavorites.adapter = adapter
         val vmFactory = FavProductsViewModelFactory(ProductsRepositoryImpl.getInstance(ProductsRemoteDataSourceImpl(RetrofitHelper.productService), ProductsLocalDataSourceImpl(AppDatabase.getInstance(this).productDao())))
         viewModel = ViewModelProvider(this, vmFactory).get(FavProductsViewModel::class.java)
 
